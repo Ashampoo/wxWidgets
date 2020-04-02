@@ -86,12 +86,12 @@ public:
     virtual wxClassInfo* GetValueClassInfo() { return NULL; }
 
     int GetRefCount() const
-        { return m_count; }
+        { return m_count.load(); }
     void IncRef()
         { m_count++; }
     void DecRef()
     {
-        if ( --m_count == 0 )
+        if ( m_count.fetch_sub(1) == 1 )
             delete this;
     }
 
@@ -102,7 +102,7 @@ protected:
     virtual ~wxVariantData() {}
 
 private:
-    int m_count;
+    std::atomic<int> m_count;
 };
 
 template<typename T> class wxVariantDataT : public wxVariantData

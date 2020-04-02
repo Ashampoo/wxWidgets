@@ -4021,7 +4021,7 @@ public:
     void IncRef() { m_refCount++; }
     void DecRef()
     {
-        if ( !--m_refCount )
+        if ( m_refCount.fetch_sub(1)==1 )
         {
             // The sink holds the only external pointer to this object
             if ( m_sink )
@@ -4033,7 +4033,7 @@ public:
 private:
     wxEvtHandler *m_src,
                  *m_sink;
-    int m_refCount;
+    std::atomic<int> m_refCount;
 
     friend class wxEvtHandler;
 

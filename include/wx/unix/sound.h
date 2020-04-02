@@ -47,7 +47,7 @@ public:
 
 private:
     ~wxSoundData();
-    unsigned m_refCnt;
+    std::atomic<int> m_refCnt;	
     wxUint8 *m_dataWithHeader; // ditto, but prefixed with .wav header
     friend class wxSound;
 };

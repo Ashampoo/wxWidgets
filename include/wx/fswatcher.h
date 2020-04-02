@@ -260,15 +260,15 @@ public:
     // file system path multiple times (this can happen even accidentally, e.g.
     // when you have a recursive watch and then decide to watch some file or
     // directory under it separately).
-    int IncRef()
+    void IncRef()
     {
-        return ++m_refcount;
+        m_refcount++;
     }
 
     int DecRef()
     {
-        wxASSERT_MSG( m_refcount > 0, wxS("Trying to decrement a zero count") );
-        return --m_refcount;
+        wxASSERT_MSG( m_refcount.load() > 0, wxS("Trying to decrement a zero count") );
+        return m_refcount.fetch_sub(1)-1;
     }
 
 protected:
@@ -276,7 +276,30 @@ protected:
     wxString m_filespec;      // For tree watches, holds any filespec to apply
     int m_events;
     wxFSWPathType m_type;
-    int m_refcount;
+
+
+    // we need an atomic with a copy constructor here
+    // because WX_DECLARE_STRING_HASH_MAP requires wxFSWatchInfo
+    // to have a copy constructor.
+    // While copying a refcount is not thread safe and also usually
+    // does not make sense, this code is equivalent to the old int
+    // based refcounting. So we use this and hope that the objects
+    // are not actually copied.
+    class CopyableAtomicInt : public std::atomic<int>
+    {
+    public:
+        CopyableAtomicInt(int val)
+        : std::atomic<int>(val)
+        {            
+        }
+
+        CopyableAtomicInt(const CopyableAtomicInt& o)
+        : std::atomic<int>( o.load() )
+        {            
+        }
+    };
+
+    CopyableAtomicInt m_refcount;
 };
 
 WX_DECLARE_STRING_HASH_MAP(wxFSWatchInfo, wxFSWatchInfoMap);

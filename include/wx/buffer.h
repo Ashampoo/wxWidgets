@@ -15,6 +15,7 @@
 #include "wx/wxcrtbase.h"
 
 #include <stdlib.h>             // malloc() and free()
+#include <atomic>
 
 class WXDLLIMPEXP_FWD_BASE wxCStrData;
 
@@ -48,7 +49,7 @@ struct UntypedBufferData
     size_t m_length;
 
     // "short" to have sizeof(Data)=12 on 32bit archs
-    unsigned short m_ref;
+    std::atomic<unsigned short> m_ref;
 
     bool m_owned;
 };
@@ -136,7 +137,7 @@ public:
             return NULL;
 
         wxASSERT_MSG( m_data->m_owned, wxT("can't release non-owned buffer") );
-        wxASSERT_MSG( m_data->m_ref == 1, wxT("can't release shared buffer") );
+        wxASSERT_MSG( m_data->m_ref.load() == 1, wxT("can't release shared buffer") );
 
         CharType * const p = m_data->Get();
 
@@ -193,7 +194,7 @@ protected:
     {
         if ( m_data == GetNullData() ) // exception, not ref-counted
             return;
-        if ( --m_data->m_ref == 0 )
+        if ( m_data->m_ref.fetch_sub(1) == 1 )
             delete m_data;
         m_data = GetNullData();
     }
@@ -318,7 +319,7 @@ public:
     bool extend(size_t len)
     {
         wxASSERT_MSG( this->m_data->m_owned, "cannot extend non-owned buffer" );
-        wxASSERT_MSG( this->m_data->m_ref == 1, "can't extend shared buffer" );
+        wxASSERT_MSG( this->m_data->m_ref.load() == 1, "can't extend shared buffer" );
 
         CharType *str =
             (CharType *)realloc(this->data(), (len + 1) * sizeof(CharType));
@@ -345,7 +346,7 @@ public:
     void shrink(size_t len)
     {
         wxASSERT_MSG( this->m_data->m_owned, "cannot shrink non-owned buffer" );
-        wxASSERT_MSG( this->m_data->m_ref == 1, "can't shrink shared buffer" );
+        wxASSERT_MSG( this->m_data->m_ref.load() == 1, "can't shrink shared buffer" );
 
         wxASSERT( len <= this->length() );
 
@@ -473,11 +474,10 @@ private:
         }
     }
 
-    void IncRef() { m_ref += 1; }
+    void IncRef() { m_ref ++; }
     void DecRef()
     {
-        m_ref -= 1;
-        if (m_ref == 0)  // are there no more references?
+        if (m_ref.fetch_sub(1) == 1)  // are there no more references?
             delete this;
     }
 
@@ -486,7 +486,7 @@ private:
         if ( m_data == NULL )
             return NULL;
 
-        wxASSERT_MSG( m_ref == 1, "can't release shared buffer" );
+        wxASSERT_MSG( m_ref.load() == 1, "can't release shared buffer" );
 
         void *p = m_data;
         m_data = NULL;
@@ -507,7 +507,7 @@ private:
     size_t m_len;
 
     // the reference count
-    size_t m_ref;
+    std::atomic<size_t> m_ref;
 
     wxDECLARE_NO_COPY_CLASS(wxMemoryBufferData);
 };

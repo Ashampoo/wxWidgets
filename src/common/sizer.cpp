@@ -1704,16 +1704,19 @@ static int SumArraySizes(const wxArrayInt& sizes, int gap)
     // Sum total minimum size, including gaps between rows/columns.
     // -1 is used as a magic number meaning empty row/column.
     int total = 0;
+    bool firstEntry = true;
 
     const size_t count = sizes.size();
     for ( size_t n = 0; n < count; n++ )
     {
         if ( sizes[n] != -1 )
         {
-            if ( total )
+            if (!firstEntry)
                 total += gap; // separate from the previous column
 
             total += sizes[n];
+
+            firstEntry = false;
         }
     }
 

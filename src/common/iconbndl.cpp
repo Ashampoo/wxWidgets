@@ -153,7 +153,7 @@ void DoAddIcon(wxIconBundle& bundle,
 
         if ( !image.LoadFile(input, type, i) )
         {
-            wxLogError(errorMessage, i);
+            wxLogError(errorMessage, (int)i);
             continue;
         }
 

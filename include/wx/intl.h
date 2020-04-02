@@ -366,6 +366,23 @@ private:
 
     bool           m_initialized;
 
+    protected:
+        
+    virtual wxTranslations& GetMyTranslations()
+    {
+        return m_translations;
+    }
+
+    virtual const wxTranslations& GetMyTranslations() const
+    {
+        return m_translations;
+    }
+
+    void SetGlobalNonOwnedTranslations(wxTranslations* pTranslations)
+    {
+        wxTranslations::SetNonOwned(pTranslations);
+    }
+
     wxTranslations m_translations;
 
     static wxLanguageInfoArray *ms_languagesDB;

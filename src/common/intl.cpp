@@ -270,9 +270,9 @@ void wxLocale::DoCommonInit()
     //     // _() returns French again
     wxTranslations *oldTrans = wxTranslations::Get();
     if ( !oldTrans ||
-         (m_pOldLocale && oldTrans == &m_pOldLocale->m_translations) )
+         (m_pOldLocale && oldTrans == &m_pOldLocale->GetMyTranslations()) )
     {
-        wxTranslations::SetNonOwned(&m_translations);
+        wxTranslations::SetNonOwned(&GetMyTranslations());
     }
 
     m_language = wxLANGUAGE_UNKNOWN;
@@ -1073,10 +1073,10 @@ wxLocale::~wxLocale()
     // Restore old translations object.
     // See DoCommonInit() for explanation of why this is needed for backward
     // compatibility.
-    if ( wxTranslations::Get() == &m_translations )
+    if ( wxTranslations::Get() == &GetMyTranslations() )
     {
         if ( m_pOldLocale )
-            wxTranslations::SetNonOwned(&m_pOldLocale->m_translations);
+            wxTranslations::SetNonOwned(&m_pOldLocale->GetMyTranslations());
         else
             wxTranslations::Set(NULL);
     }

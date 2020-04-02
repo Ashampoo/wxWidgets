@@ -798,6 +798,8 @@ private:
     wxDECLARE_DYNAMIC_CLASS(wxWindowMSW);
     wxDECLARE_NO_COPY_CLASS(wxWindowMSW);
     wxDECLARE_EVENT_TABLE();
+
+    bool        m_destroyWindowOnDestruct;
 };
 
 // window creation helper class: before creating a new HWND, instantiate an

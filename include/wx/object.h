@@ -12,6 +12,8 @@
 #ifndef _WX_OBJECTH__
 #define _WX_OBJECTH__
 
+#include <atomic>
+
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
@@ -228,9 +230,9 @@ inline T *wxCheckCast(const void *ptr)
 class WXDLLIMPEXP_BASE wxRefCounter
 {
 public:
-    wxRefCounter() { m_count = 1; }
+    wxRefCounter() : m_count(1) {}
 
-    int GetRefCount() const { return m_count; }
+    int GetRefCount() const { return m_count.load(); }
 
     void IncRef() { m_count++; }
     void DecRef();
@@ -242,7 +244,7 @@ protected:
 
 private:
     // our refcount:
-    int m_count;
+    std::atomic<int> m_count;
 
     // It doesn't make sense to copy the reference counted objects, a new ref
     // counter should be created for a new object instead and compilation

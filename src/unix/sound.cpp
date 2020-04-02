@@ -61,7 +61,7 @@ void wxSoundData::DecRef()
 #if wxUSE_THREADS
     wxMutexLocker locker(gs_soundMutex);
 #endif
-    if (--m_refCnt == 0)
+    if (m_refCnt.fetch_sub(1) == 1)
         delete this;
 }
 

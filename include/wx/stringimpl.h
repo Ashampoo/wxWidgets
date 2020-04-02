@@ -98,6 +98,8 @@ extern WXDLLIMPEXP_DATA_BASE(const wxStringCharType*) wxEmptyStringImpl;
 // is never used directly (but had to be put here to allow inlining)
 // ---------------------------------------------------------------------------
 
+#pragma error "Old non-thread-safe wxString implementation used!"
+
 struct WXDLLIMPEXP_BASE wxStringData
 {
   int     nRefs;        // reference count

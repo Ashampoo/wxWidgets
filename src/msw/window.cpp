@@ -458,6 +458,8 @@ void wxWindowMSW::Init()
     m_mouseInWindow = false;
     m_lastKeydownProcessed = false;
 
+    m_destroyWindowOnDestruct = true;
+
     m_hWnd = 0;
 
     m_xThumbSize = 0;
@@ -483,12 +485,15 @@ wxWindowMSW::~wxWindowMSW()
 
     if ( m_hWnd )
     {
-        // VZ: test temp removed to understand what really happens here
-        //if (::IsWindow(GetHwnd()))
+        if(m_destroyWindowOnDestruct)
         {
-            if ( !::DestroyWindow(GetHwnd()) )
+            // VZ: test temp removed to understand what really happens here
+            //if (::IsWindow(GetHwnd()))
             {
-                wxLogLastError(wxT("DestroyWindow"));
+                if ( !::DestroyWindow(GetHwnd()) )
+                {
+                    wxLogLastError(wxT("DestroyWindow"));
+                }
             }
         }
 
@@ -4228,6 +4233,10 @@ bool wxWindowMSW::HandleEndSession(bool endSession, long logOff)
     // only send once
     if ( (this != wxTheApp->GetTopWindow()) )
         return false;
+
+    // prevent this window handle from being destroyed during the WM_ENDSESSION handler.
+    // See wxApp::OnEndSession implementation comments for an explanation why we do this here.
+    m_destroyWindowOnDestruct = false;
 
     wxCloseEvent event(wxEVT_END_SESSION, wxID_ANY);
     event.SetEventObject(wxTheApp);

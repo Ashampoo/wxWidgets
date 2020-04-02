@@ -223,6 +223,28 @@ public:
 
     // return true if the port has certain feature
     static bool HasFeature(wxSystemFeature index);
+
+#if defined(__WXMSW__) || defined(__WXGTK__)
+
+	// Sets the global default GUI font.
+	// This will afterwards be returned by GetFont(wxSYS_DEFAULT_GUI_FONT).
+	// The function takes ownershop of the font and will delete it
+	// upon app exit.
+	// This function was added by Ocster.
+	static void SetDefaultGUIFont(wxFont* pFont);
+#endif
+
+#ifdef __WXMSW__
+#if wxUSE_LISTCTRL || wxUSE_TREECTRL
+	// Returns the default font for Windows Common Controls.
+	// This function was added by Ocster.
+	static wxFont GetDefaultCommonControlFont();
+
+	// Sets the default font for Windows common controls.
+	// This function was added by Ocster.
+	static void SetDefaultCommonControlFont(wxFont* pFont);
+#endif
+#endif
 };
 
 // ----------------------------------------------------------------------------

@@ -63,6 +63,8 @@ private:
 // GetFont() is called for the first time and deleted by wxSystemSettingsModule
 static wxFont *gs_fontDefault = NULL;
 
+static wxFont *gs_fontCommonControlDefault = NULL;
+
 // ============================================================================
 // implementation
 // ============================================================================
@@ -88,6 +90,14 @@ bool wxSystemSettingsModule::OnInit()
 void wxSystemSettingsModule::OnExit()
 {
     wxDELETE(gs_fontDefault);
+	
+	wxDELETE(gs_fontCommonControlDefault);
+}
+
+void wxSystemSettingsNative::SetDefaultGUIFont(wxFont* pFont)
+{
+	wxDELETE(gs_fontDefault);
+	gs_fontDefault = pFont;
 }
 
 // ----------------------------------------------------------------------------
@@ -334,7 +344,7 @@ bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
 
 #if wxUSE_LISTCTRL || wxUSE_TREECTRL
 
-extern wxFont wxGetCCDefaultFont()
+wxFont wxGetCCDefaultFontOrig()
 {
     // the default font used for the common controls seems to be the desktop
     // font which is also used for the icon titles and not the stock default
@@ -360,5 +370,26 @@ extern wxFont wxGetCCDefaultFont()
     // fall back to the default font for the normal controls
     return wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 }
+
+extern wxFont wxGetCCDefaultFont()
+{
+	return wxSystemSettingsNative::GetDefaultCommonControlFont();
+}
+
+
+wxFont wxSystemSettingsNative::GetDefaultCommonControlFont()
+{
+	if(!gs_fontCommonControlDefault)
+		gs_fontCommonControlDefault = new wxFont(wxGetCCDefaultFontOrig());
+	
+	return *gs_fontCommonControlDefault;
+}
+
+void wxSystemSettingsNative::SetDefaultCommonControlFont(wxFont* pFont)
+{
+	wxDELETE(gs_fontCommonControlDefault);
+	gs_fontCommonControlDefault = pFont;
+}
+
 
 #endif // wxUSE_LISTCTRL || wxUSE_TREECTRL

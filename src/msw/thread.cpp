@@ -1278,6 +1278,15 @@ bool wxThreadModule::OnInit()
 
 void wxThreadModule::OnExit()
 {
+	// reset the main thread ID. This is important, because some module
+	// OnExit methods check that the destructing thread is the main thread.
+	// However, the destruction is not guaranteed to be done by the main thread
+	// (CrtMainStartup PROCESS_DETACH can be called in the context of any thread,
+	// even a temporary ad-hoc worker thread). So to make sure that no assertions
+	// fire we have to reset the main thread ID to 0 when we deinitialize.
+	wxThread::ms_idMainThread = 0;
+	
+	
     if ( !::TlsFree(gs_tlsThisThread) )
     {
         wxLogLastError(wxT("TlsFree failed."));

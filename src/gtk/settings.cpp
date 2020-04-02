@@ -764,6 +764,17 @@ wxColour wxSystemSettingsNative::GetColour( wxSystemColour index )
 }
 #endif // !__WXGTK3__
 
+void wxSystemSettingsNative::SetDefaultGUIFont(wxFont* pFont)
+{
+    if(pFont==NULL)
+        gs_fontSystem = wxNullFont;
+    else
+    {
+       gs_fontSystem = *pFont;
+       delete pFont;
+    }    
+}
+
 wxFont wxSystemSettingsNative::GetFont( wxSystemFont index )
 {
     wxFont font;

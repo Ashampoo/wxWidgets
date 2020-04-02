@@ -880,6 +880,48 @@ static int UnknownEncodingHnd(void * WXUNUSED(encodingHandlerData),
 
 } // extern "C"
 
+
+static bool convertNameToClarksNotation(wxString& sName)
+{
+    size_t sepIndex = sName.find('|');
+    
+    if(sepIndex!=wxString::npos)
+    {
+        sName = _T("{") + sName.Left(sepIndex) + _T("}") + sName.Mid(sepIndex+1);
+        return true;
+    }
+    else
+        return false;
+}
+
+static void convertNamesToClarksNotationRecursive(wxXmlNode* pNode)
+{
+    // convert namespaces to Clark's notation: {NAMESPACE}LOCALNAME
+    wxString sName = pNode->GetName();
+    
+    if(convertNameToClarksNotation(sName))
+        pNode->SetName(sName);
+    
+    wxXmlNode* pChild = pNode->GetChildren();
+    while(pChild!=NULL)
+    {
+        if(pChild->GetType()==wxXML_ELEMENT_NODE)
+            convertNamesToClarksNotationRecursive(pChild);
+            
+        pChild = pChild->GetNext();
+    }
+    
+    wxXmlAttribute* pAttr = pNode->GetAttributes();
+    while(pAttr!=NULL)
+    {
+        wxString sAttrName = pAttr->GetName();
+        if(convertNameToClarksNotation(sAttrName))
+            pAttr->SetName(sName);
+    
+        pAttr = pAttr->GetNext();
+    }
+}
+
 bool wxXmlDocument::Load(wxInputStream& stream, const wxString& encoding, int flags)
 {
 #if wxUSE_UNICODE
@@ -892,7 +934,12 @@ bool wxXmlDocument::Load(wxInputStream& stream, const wxString& encoding, int fl
     char buf[BUFSIZE];
     wxXmlParsingContext ctx;
     bool done;
-    XML_Parser parser = XML_ParserCreate(NULL);
+    XML_Parser parser;
+    if((flags & wxXMLDOC_PROCESS_NAMESPACES)==wxXMLDOC_PROCESS_NAMESPACES)
+        parser = XML_ParserCreateNS(NULL, '|');
+    else
+        parser = XML_ParserCreate(NULL);
+    
     wxXmlNode *root = new wxXmlNode(wxXML_DOCUMENT_NODE, wxEmptyString);
 
     ctx.encoding = wxS("UTF-8"); // default in absence of encoding=""
@@ -940,6 +987,9 @@ bool wxXmlDocument::Load(wxInputStream& stream, const wxString& encoding, int fl
         if (!ctx.encoding.empty())
             SetFileEncoding(ctx.encoding);
         SetDocumentNode(root);
+        
+        if((flags & wxXMLDOC_PROCESS_NAMESPACES)==wxXMLDOC_PROCESS_NAMESPACES)
+            convertNamesToClarksNotationRecursive(root);
     }
     else
     {

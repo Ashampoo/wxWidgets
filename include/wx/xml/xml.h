@@ -273,7 +273,8 @@ private:
 enum wxXmlDocumentLoadFlag
 {
     wxXMLDOC_NONE = 0,
-    wxXMLDOC_KEEP_WHITESPACE_NODES = 1
+    wxXMLDOC_KEEP_WHITESPACE_NODES = 1,
+	wxXMLDOC_PROCESS_NAMESPACES = 128
 };
 
 

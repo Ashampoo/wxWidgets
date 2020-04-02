@@ -162,10 +162,10 @@ public:
     bool IsLoaded(const wxString& domain) const;
 
     // access to translations
-    const wxString *GetTranslatedString(const wxString& origString,
+    virtual const wxString *GetTranslatedString(const wxString& origString,
                                         const wxString& domain = wxEmptyString,
                                         const wxString& context = wxEmptyString) const;
-    const wxString *GetTranslatedString(const wxString& origString,
+    virtual const wxString *GetTranslatedString(const wxString& origString,
                                         unsigned n,
                                         const wxString& domain = wxEmptyString,
                                         const wxString& context = wxEmptyString) const;

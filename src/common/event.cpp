@@ -949,6 +949,8 @@ wxEventHashTable::wxEventHashTable(const wxEventTable &table)
 {
     AllocEventTypeTable(EVENT_TYPE_TABLE_INIT_SIZE);
 
+	m_previous = NULL;
+
     m_next = sm_first;
     if (m_next)
         m_next->m_previous = this;

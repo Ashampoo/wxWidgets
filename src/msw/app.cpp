@@ -813,8 +813,26 @@ void wxApp::OnEndSession(wxCloseEvent& WXUNUSED(event))
     // prevent the window from being destroyed when the corresponding wxTLW is
     // destroyed: this will result in a leak of a HWND, of course, but who
     // cares when the process is being killed anyhow
-    if ( !wxTopLevelWindows.empty() )
-        wxTopLevelWindows[0]->SetHWND(0);
+    // Update: we do not do this with SetHWND(NULL) anymore as we used to. SetHWND(NULL)
+    // can cause a crash when the window receives a message during the cleanup:
+    // If the handle is NULL then the window object will not be removed from the global
+    // window list when the object is destroyed. If the window then receives another message
+    // then we get a crash.
+    // It is also unclear why SetHWND(NULL) used to be called here on one of the top level windows.
+    // Is there a real reason, or is this simply because the MSDN docs of WM_ENDSESSION state
+    // that one need not clean up one's windows in this message because the process exits
+    // anyway? If it is the latter then it is nonsensical to prevent ONE window from being destroyed
+    // while still calling wxEntryCleanup (which destroys all other windows). Also the docs state that
+    // one need not clean up, but they do not say that one is not allowed to.
+    // One reason to not delete the window might be that WM_ENDSESSION is actually received through
+    // a window, so this code line might intent to prevent the window handle from being deleted while
+    // a message is being processed for it.
+    // Since it is unknown if there is a deeper reason for this, rather than just misunderstood
+    // MSDN documentation, we keep the current behaviour. However, we do this in a crash-proof way
+    // in the WM_ENDSESSION handler of the window, rather than in the app.
+    // So, here we do nothing.
+    //if ( !wxTopLevelWindows.empty() )
+    //    wxTopLevelWindows[0]->SetHWND(0);
 
     // Destroy all the remaining TLWs before calling OnExit() to have the same
     // sequence of events in this case as in case of the normal shutdown,
